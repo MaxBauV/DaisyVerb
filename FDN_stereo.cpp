@@ -1,5 +1,4 @@
 #include "daisysp.h"
-// #include "daisy_seed.h"
 #include "daisy_patch_sm.h"
 
 // Interleaved audio definitions
@@ -65,6 +64,9 @@ float lengthCV;
 float densityCV;
 float feedbackGainCV;
 
+float dryFactor;
+float wetFactor;
+
 
 static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
                           AudioHandle::InterleavingOutputBuffer out,
@@ -129,9 +131,6 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 			apf_y = (0.7 * apf_feedback) + apf_del_out;
 			apf_del[idx].Write(apf_feedback);
 		}
-
-        float dryFactor = fmap(wetCV, 0.f, 1.f, Mapping::LOG);
-        float wetFactor = fmap(wetCV, 1.f, 0.f, Mapping::LOG);
 
 		sig_out_L = ((1.0f - dryFactor) * in[LEFT]) + (wetFactor * apf_y); // wet/dry
 
@@ -207,6 +206,9 @@ int main(void)
     while(1) {
 		// wetCV = floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
         wetCV = hw.adc.GetFloat(2);
+        dryFactor = fmap(wetCV, 0.f, 1.f, Mapping::LOG);
+        wetFactor = fmap(wetCV, 1.f, 0.f, Mapping::LOG);
+        hw.PrintLine("CV=%f; DRY=%f; WET=%f", wetCV, dryFactor, wetFactor);
 
         //mixFactor = patch.GetAdcValue(CV_3);
 		lengthCV = ceil(hw.adc.GetFloat(delayLengthKnob) * 1000.0f) / 1000.0f; // rounding to 3 decimal places
