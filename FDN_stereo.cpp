@@ -85,7 +85,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 
 			// Read & output - LEFT
             FDN_del_out_L[idx] = FDN_del_L[idx].Read();
-            sig_out_L += FDN_del_out_L[idx] / 4.0f; // sum and scale
+            sig_out_L += FDN_del_out_L[idx] / 4.0f; // sum and scale //TODO: should be / DEL_NUM ?
 
 			// LPF - LEFT
             lpf_y_L[idx] = (0.8f * FDN_del_out_L[idx]) + (0.2f * lpf_del_L[idx].Read());
@@ -115,11 +115,11 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 				FDN_feedback_R += hadamard_matrix[r][c] * lpf_y_R[c] * MATRIX_SCALAR;
             }
 			FDN_feedback_L *= feedbackGainCV;
-			FDN_feedback_L += u;
+			FDN_feedback_L += u; //TODO: not true stereo!!
 			FDN_del_L[r].Write(FDN_feedback_L);
 
 			FDN_feedback_R *= feedbackGainCV;
-			FDN_feedback_R += u;
+			FDN_feedback_R += u; //TODO: not true stereo!!
             FDN_del_R[r].Write(FDN_feedback_R);
         }
 
@@ -191,11 +191,11 @@ int main(void)
     }
 
 	// ADC stuff
-    enum AdcChannel {
-        dryWetKnob = 0,
-		delayLengthKnob,
-        densityKnob,
-        feedbackGainKnob,
+    enum CVinputs {
+        CV_1 = 0,
+		CV_2,
+        CV_3,
+        CV_4,
         NUM_ADC_CHANNELS
     };
 
@@ -205,16 +205,16 @@ int main(void)
 	hw.StartLog(true);
     while(1) {
 		// wetCV = floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
-        wetCV = hw.adc.GetFloat(2);
+        wetCV = hw.adc.GetFloat(CV_3);
         dryFactor = fmap(wetCV, 0.f, 1.f, Mapping::LOG);
         wetFactor = fmap(wetCV, 1.f, 0.f, Mapping::LOG);
         hw.PrintLine("CV=%f; DRY=%f; WET=%f", wetCV, dryFactor, wetFactor);
 
         //mixFactor = patch.GetAdcValue(CV_3);
-		lengthCV = ceil(hw.adc.GetFloat(delayLengthKnob) * 1000.0f) / 1000.0f; // rounding to 3 decimal places
+		lengthCV = ceil(hw.adc.GetFloat(CV_1) * 1000.0f) / 1000.0f; // rounding to 3 decimal places
 		lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
-        densityCV = (9 * (floor(hw.adc.GetFloat(0) * 100.0f) / 100.0f)) + 1;
-        feedbackGainCV = (0.25f * (floor(hw.adc.GetFloat(feedbackGainKnob) * 100.0f) / 100.0f)) + 0.74f;
+        densityCV = (9 * (floor(hw.adc.GetFloat(CV_4) * 100.0f) / 100.0f)) + 1;
+        feedbackGainCV = (0.25f * (floor(hw.adc.GetFloat(CV_2) * 100.0f) / 100.0f)) + 0.74f;
 
         System::Delay(50);
 	}
