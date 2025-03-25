@@ -22,6 +22,8 @@ static DelayLine<float, 4999U + 1U> FDN_del_R[DEL_NUM];
 static DelayLine<float, 1U> lpf_del_L[DEL_NUM];
 static DelayLine<float, 1U> lpf_del_R[DEL_NUM];
 
+#define STEREO_CROSS_MIX 0.5
+
 // Declare APF DelayLines
 static DelayLine<float, 557U + 1U> apf_del[DEL_NUM];
 
@@ -115,11 +117,11 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 				FDN_feedback_R += hadamard_matrix[r][c] * lpf_y_R[c] * MATRIX_SCALAR;
             }
 			FDN_feedback_L *= feedbackGainCV;
-			FDN_feedback_L += u; //TODO: not true stereo!!
+			FDN_feedback_L += in[LEFT] * STEREO_CROSS_MIX + in[RIGHT] * (1 - STEREO_CROSS_MIX);
 			FDN_del_L[r].Write(FDN_feedback_L);
 
 			FDN_feedback_R *= feedbackGainCV;
-			FDN_feedback_R += u; //TODO: not true stereo!!
+			FDN_feedback_R += in[RIGHT] * STEREO_CROSS_MIX + in[LEFT] * (1 - STEREO_CROSS_MIX); //TODO: not true stereo!!
             FDN_del_R[r].Write(FDN_feedback_R);
         }
 
