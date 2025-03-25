@@ -1,5 +1,6 @@
 #include "daisysp.h"
 #include "daisy_seed.h"
+#include "daisy_patch_sm.h"
 
 // Interleaved audio definitions
 #define LEFT (i)
@@ -9,10 +10,11 @@
 #define LPCF_NUM 8U
 #define APF_NUM 4U
 
-using namespace daisysp;
 using namespace daisy;
+using namespace daisysp;
+using namespace patch_sm;
 
-static DaisySeed hw;
+static DaisyPatchSM hw;
 
 // Declare LPF DelayLines
 static DelayLine<float, 1U> lpf_del_L[LPCF_NUM];
@@ -134,7 +136,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 int main(void)
 {
     // Initialize seed hardware and daisysp modules
-    hw.Configure();
+    // hw.Configure();
     hw.Init();
     hw.SetAudioBlockSize(4);
 
@@ -178,22 +180,22 @@ int main(void)
         NUM_ADC_CHANNELS
     };
 
-    AdcChannelConfig adc_config[NUM_ADC_CHANNELS];
+    // AdcChannelConfig adc_config[NUM_ADC_CHANNELS];
 
-    adc_config[dryWetKnob].InitSingle(daisy::seed::A0);
-	adc_config[delayLengthKnob].InitSingle(daisy::seed::A1);
-	adc_config[densityKnob].InitSingle(daisy::seed::A2);
-    adc_config[feedbackGainKnob].InitSingle(daisy::seed::A3);
+    // adc_config[dryWetKnob].InitSingle(daisy::seed::A0);
+	// adc_config[delayLengthKnob].InitSingle(daisy::seed::A1);
+	// adc_config[densityKnob].InitSingle(daisy::seed::A2);
+    // adc_config[feedbackGainKnob].InitSingle(daisy::seed::A3);
  
-    hw.adc.Init(adc_config, NUM_ADC_CHANNELS);
-    hw.adc.Start();
+    // hw.adc.Init(adc_config, NUM_ADC_CHANNELS);
+    // hw.adc.Start();
 
     // Start callback
     hw.StartAudio(AudioCallback);
 
     //hw.StartLog(true);
     while(1) {
-		wetCV = floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
+		wetCV = 1;//floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
 		lengthCV = ceil(hw.adc.GetFloat(delayLengthKnob) * 1000.0f) / 1000.0f; // rounding to 2 decimal places
 		lengthCV = (lengthCV * (PRIMES_NUM - LPCF_NUM)) + (LPCF_NUM - 1);
         densityCV = (9 * (floor(hw.adc.GetFloat(densityKnob) * 100.0f) / 100.0f)) + 1;

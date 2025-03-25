@@ -1,14 +1,16 @@
 #include "daisysp.h"
-#include "daisy_seed.h"
+// #include "daisy_seed.h"
+#include "daisy_patch_sm.h"
 
 // Interleaved audio definitions
 #define LEFT (i)
 #define RIGHT (i + 1)
 
-using namespace daisysp;
 using namespace daisy;
+using namespace daisysp;
+using namespace patch_sm;
 
-static DaisySeed hw;
+static DaisyPatchSM hw;
 
 // Number of delay lines
 #define DEL_NUM 4U
@@ -72,7 +74,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
     for(size_t i = 0; i < size; i += 2)
     {
 
-        u = 0.5f * (in[LEFT] + in[RIGHT]); // mono input
+        // u = 0.5f * (in[LEFT] + in[RIGHT]); // mono input
 
         // Process delay outs and output signal
         sig_out_L = 0.0f;
@@ -128,7 +130,10 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 			apf_del[idx].Write(apf_feedback);
 		}
 
-		sig_out_L = ((1.0f - wetCV) * u) + (wetCV * apf_y); // wet/dry
+        float dryFactor = fmap(wetCV, 0.f, 1.f, Mapping::LOG);
+        float wetFactor = fmap(wetCV, 1.f, 0.f, Mapping::LOG);
+
+		sig_out_L = ((1.0f - dryFactor) * in[LEFT]) + (wetFactor * apf_y); // wet/dry
 
 		apf_y = sig_out_R;
 		for(idx = 0; idx < DEL_NUM; idx++) {
@@ -138,7 +143,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 			apf_del[idx].Write(apf_feedback);
 		}
 
-		sig_out_R = ((1.0f - wetCV) * u) + (wetCV * apf_y); // wet/dry
+		sig_out_R = ((1.0f - wetCV) * in[RIGHT]) + (wetCV * apf_y); // wet/dry
 
         out[LEFT]  = sig_out_L;
         out[RIGHT] = sig_out_R;
@@ -159,7 +164,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 int main(void)
 {
     // Initialize seed hardware and daisysp modules
-    hw.Configure();
+    // hw.Configure();
     hw.Init();
     hw.SetAudioBlockSize(4);
 
@@ -195,25 +200,18 @@ int main(void)
         NUM_ADC_CHANNELS
     };
 
-    AdcChannelConfig adc_config[NUM_ADC_CHANNELS];
-
-    adc_config[dryWetKnob].InitSingle(daisy::seed::A0);
-	adc_config[delayLengthKnob].InitSingle(daisy::seed::A1);
-	adc_config[densityKnob].InitSingle(daisy::seed::A2);
-    adc_config[feedbackGainKnob].InitSingle(daisy::seed::A3);
- 
-    hw.adc.Init(adc_config, NUM_ADC_CHANNELS);
-    hw.adc.Start();
-
     // Start callback
     hw.StartAudio(AudioCallback);
 
-	//hw.StartLog(true);
+	hw.StartLog(true);
     while(1) {
-		wetCV = floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
+		// wetCV = floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
+        wetCV = hw.adc.GetFloat(2);
+
+        //mixFactor = patch.GetAdcValue(CV_3);
 		lengthCV = ceil(hw.adc.GetFloat(delayLengthKnob) * 1000.0f) / 1000.0f; // rounding to 3 decimal places
 		lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
-        densityCV = (9 * (floor(hw.adc.GetFloat(densityKnob) * 100.0f) / 100.0f)) + 1;
+        densityCV = (9 * (floor(hw.adc.GetFloat(0) * 100.0f) / 100.0f)) + 1;
         feedbackGainCV = (0.25f * (floor(hw.adc.GetFloat(feedbackGainKnob) * 100.0f) / 100.0f)) + 0.74f;
 
         System::Delay(50);
