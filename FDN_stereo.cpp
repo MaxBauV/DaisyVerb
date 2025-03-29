@@ -89,8 +89,8 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
     wetCV = fmap(wetCV, 0.0f, 1.0f);
 
     lengthCV = patch.adc.GetFloat(1);
-    lengthCV = ceil(fmap(lengthCV, 0.0f, 1.0f) * 1000.0f) / 1000.0f;
-    lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
+    lengthCV = ceil(fmap(lengthCV, 0.0f, 2048.0f)); // * 4999.0f);// / 1000.0f;
+    //lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
 
     densityCV = patch.adc.GetFloat(2);
     densityCV = (9 * (floor(fmap(densityCV, 0.0f, 1.0f) * 100.0f) / 100.0f)) + 1;
@@ -140,11 +140,13 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 				FDN_feedback_R += hadamard_matrix[r][c] * lpf_y_R[c] * MATRIX_SCALAR;
             }
 			FDN_feedback_L *= feedbackGainCV;
-			FDN_feedback_L += in[LEFT] * STEREO_CROSS_MIX + in[RIGHT] * (1 - STEREO_CROSS_MIX);
+            FDN_feedback_L += in[LEFT];
+            //FDN_feedback_L = FDN_feedback_L * STEREO_CROSS_MIX + FDN_feedback_R * (1 - STEREO_CROSS_MIX);
+			//FDN_feedback_L += in[LEFT] * STEREO_CROSS_MIX + in[RIGHT] * (1 - STEREO_CROSS_MIX);
 			FDN_del_L[r].Write(FDN_feedback_L);
 
 			FDN_feedback_R *= feedbackGainCV;
-			FDN_feedback_R += in[RIGHT] * STEREO_CROSS_MIX + in[LEFT] * (1 - STEREO_CROSS_MIX);
+			FDN_feedback_R += in[RIGHT];
             FDN_del_R[r].Write(FDN_feedback_R);
         }
 
@@ -157,7 +159,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 			apf_del[idx].Write(apf_feedback);
 		}
 
-		sig_out_L = ((1.0f - dryFactor) * in[LEFT]) + (wetFactor * apf_y); // wet/dry
+		sig_out_L = ((1.0f - wetCV) * in[LEFT]) + (wetCV * apf_y); // wet/dry
 
 		apf_y = sig_out_R;
 		for(idx = 0; idx < DEL_NUM; idx++) {
