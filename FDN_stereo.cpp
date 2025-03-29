@@ -10,6 +10,7 @@ using namespace daisysp;
 using namespace patch_sm;
 
 DaisyPatchSM patch;
+Switch toggle;
 
 // ADC stuff
 enum CVinputs {
@@ -42,6 +43,13 @@ const signed char hadamard_matrix[DEL_NUM][DEL_NUM] = {
 { -1, -1,  1,  1  },
 {  1, -1, -1,  1  }
 };
+
+const signed char hadamard_matrix2[DEL_NUM][DEL_NUM] = {
+    {  1,  1,  1,  1  },
+    {  1, -1,  1, -1  },
+    {  1,  1, -1, -1  },
+    {  1, -1, -1,  1  }
+    };
 
 // Matrix scalar for Hadamard
 #define MATRIX_SCALAR 0.5f
@@ -78,6 +86,7 @@ float feedbackGainCV;
 float dryFactor;
 float wetFactor;
 
+bool matrix_sel = false;
 
 static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
                           AudioHandle::InterleavingOutputBuffer out,
@@ -85,18 +94,21 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 {
     patch.ProcessAnalogControls();
 
+    toggle.Debounce();
+
+    matrix_sel = toggle.Pressed();
+
     wetCV = patch.GetAdcValue(0);
     wetCV = fmap(wetCV, 0.0f, 1.0f);
 
-    lengthCV = patch.adc.GetFloat(1);
-    lengthCV = ceil(fmap(lengthCV, 0.0f, 2048.0f)); // * 4999.0f);// / 1000.0f;
-    //lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
+    lengthCV = patch.GetAdcValue(1);
+    lengthCV = fmap(lengthCV, 3.0f, 668.0f);
 
-    densityCV = patch.adc.GetFloat(2);
-    densityCV = (9 * (floor(fmap(densityCV, 0.0f, 1.0f) * 100.0f) / 100.0f)) + 1;
+    densityCV = patch.GetAdcValue(2);
+    densityCV = fmap(densityCV, 1.0f, 10.0f);
 
-    feedbackGainCV = patch.adc.GetFloat(3);
-    feedbackGainCV = (0.25f * (floor(fmap(feedbackGainCV, 0.0f, 1.0f) * 100.0f) / 100.0f)) + 0.74f;
+    feedbackGainCV = patch.GetAdcValue(3);
+    feedbackGainCV = fmap(feedbackGainCV, 0.74f, 1.0f);
 
     for(size_t i = 0; i < size; i += 2)
     {
@@ -136,8 +148,15 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
             FDN_feedback_L = 0;
 			FDN_feedback_R = 0;
             for(c = 0; c < DEL_NUM; c++){
-                FDN_feedback_L += hadamard_matrix[r][c] * lpf_y_L[c] * MATRIX_SCALAR;
-				FDN_feedback_R += hadamard_matrix[r][c] * lpf_y_R[c] * MATRIX_SCALAR;
+                if (matrix_sel == true) {
+                    FDN_feedback_L += hadamard_matrix[r][c] * lpf_y_L[c] * MATRIX_SCALAR;
+				    FDN_feedback_R += hadamard_matrix[r][c] * lpf_y_R[c] * MATRIX_SCALAR;
+                }
+                else {
+                    FDN_feedback_L += hadamard_matrix2[r][c] * lpf_y_L[c] * MATRIX_SCALAR;
+				    FDN_feedback_R += hadamard_matrix2[r][c] * lpf_y_R[c] * MATRIX_SCALAR;
+                }
+                
             }
 			FDN_feedback_L *= feedbackGainCV;
             FDN_feedback_L += in[LEFT];
@@ -193,6 +212,8 @@ int main(void)
     // patch.Configure();
     patch.Init();
     patch.SetAudioBlockSize(4);
+
+    toggle.Init(patch.B8);
 
     // Initialize and set delay lines
     unsigned int lengths[DEL_NUM] = {1801U, 1553U, 2017U, 2243U};
