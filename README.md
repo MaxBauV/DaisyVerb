@@ -3,7 +3,7 @@
 forked from https://github.com/adion12/DaisyVerb
 
 ## TODOs
-[ ] Convert ti true stereo
+[ ] Convert to true stereo
 
 [ ] Fix Pots
 

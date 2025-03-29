@@ -2,7 +2,7 @@
 TARGET = DaisyVerb
 
 # Sources
-CPP_SOURCES = myFreeverb_stereo.cpp
+CPP_SOURCES = FDN_stereo.cpp
 
 # Library Locations
 LIBDAISY_DIR = ../DaisyExamples/libDaisy/

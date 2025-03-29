@@ -9,7 +9,16 @@ using namespace daisy;
 using namespace daisysp;
 using namespace patch_sm;
 
-static DaisyPatchSM hw;
+DaisyPatchSM patch;
+
+// ADC stuff
+enum CVinputs {
+    CV_1 = 0,
+    CV_2,
+    CV_3,
+    CV_4,
+    NUM_ADC_CHANNELS
+};
 
 // Number of delay lines
 #define DEL_NUM 4U
@@ -74,6 +83,20 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
                           AudioHandle::InterleavingOutputBuffer out,
                           size_t                                size)
 {
+    patch.ProcessAnalogControls();
+
+    wetCV = patch.GetAdcValue(0);
+    wetCV = fmap(wetCV, 0.0f, 1.0f);
+
+    lengthCV = patch.adc.GetFloat(1);
+    lengthCV = ceil(fmap(lengthCV, 0.0f, 1.0f) * 1000.0f) / 1000.0f;
+    lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
+
+    densityCV = patch.adc.GetFloat(2);
+    densityCV = (9 * (floor(fmap(densityCV, 0.0f, 1.0f) * 100.0f) / 100.0f)) + 1;
+
+    feedbackGainCV = patch.adc.GetFloat(3);
+    feedbackGainCV = (0.25f * (floor(fmap(feedbackGainCV, 0.0f, 1.0f) * 100.0f) / 100.0f)) + 0.74f;
 
     for(size_t i = 0; i < size; i += 2)
     {
@@ -121,7 +144,7 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 			FDN_del_L[r].Write(FDN_feedback_L);
 
 			FDN_feedback_R *= feedbackGainCV;
-			FDN_feedback_R += in[RIGHT] * STEREO_CROSS_MIX + in[LEFT] * (1 - STEREO_CROSS_MIX); //TODO: not true stereo!!
+			FDN_feedback_R += in[RIGHT] * STEREO_CROSS_MIX + in[LEFT] * (1 - STEREO_CROSS_MIX);
             FDN_del_R[r].Write(FDN_feedback_R);
         }
 
@@ -165,9 +188,9 @@ static void AudioCallback(AudioHandle::InterleavingInputBuffer  in,
 int main(void)
 {
     // Initialize seed hardware and daisysp modules
-    // hw.Configure();
-    hw.Init();
-    hw.SetAudioBlockSize(4);
+    // patch.Configure();
+    patch.Init();
+    patch.SetAudioBlockSize(4);
 
     // Initialize and set delay lines
     unsigned int lengths[DEL_NUM] = {1801U, 1553U, 2017U, 2243U};
@@ -192,32 +215,8 @@ int main(void)
         apf_del[idx].SetDelay((unsigned int) apf_lengths[idx]);
     }
 
-	// ADC stuff
-    enum CVinputs {
-        CV_1 = 0,
-		CV_2,
-        CV_3,
-        CV_4,
-        NUM_ADC_CHANNELS
-    };
-
     // Start callback
-    hw.StartAudio(AudioCallback);
+    patch.StartAudio(AudioCallback);
 
-	hw.StartLog(true);
-    while(1) {
-		// wetCV = floor(hw.adc.GetFloat(dryWetKnob) * 100.0f) / 100.0f;
-        wetCV = hw.adc.GetFloat(CV_3);
-        dryFactor = fmap(wetCV, 0.f, 1.f, Mapping::LOG);
-        wetFactor = fmap(wetCV, 1.f, 0.f, Mapping::LOG);
-        hw.PrintLine("CV=%f; DRY=%f; WET=%f", wetCV, dryFactor, wetFactor);
-
-        //mixFactor = patch.GetAdcValue(CV_3);
-		lengthCV = ceil(hw.adc.GetFloat(CV_1) * 1000.0f) / 1000.0f; // rounding to 3 decimal places
-		lengthCV = (lengthCV * (PRIMES_NUM - DEL_NUM)) + (DEL_NUM - 1);
-        densityCV = (9 * (floor(hw.adc.GetFloat(CV_4) * 100.0f) / 100.0f)) + 1;
-        feedbackGainCV = (0.25f * (floor(hw.adc.GetFloat(CV_2) * 100.0f) / 100.0f)) + 0.74f;
-
-        System::Delay(50);
-	}
+    while(true) {}
 }

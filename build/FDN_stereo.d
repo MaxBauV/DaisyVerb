@@ -1,4 +1,4 @@
-build/myFreeverb_stereo.o: myFreeverb_stereo.cpp \
+build/FDN_stereo.o: FDN_stereo.cpp \
  ../DaisyExamples/libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h \
  ../DaisyExamples/libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h750xx.h \
  ../DaisyExamples/libDaisy//Drivers/CMSIS/Include/core_cm7.h \
@@ -148,7 +148,7 @@ build/myFreeverb_stereo.o: myFreeverb_stereo.cpp \
  ../DaisyExamples/DaisySP//Source/Utility/metro.h \
  ../DaisyExamples/DaisySP//Source/Utility/samplehold.h \
  ../DaisyExamples/DaisySP//Source/Utility/smooth_random.h \
- ../DaisyExamples/libDaisy//src/daisy_seed.h \
+ ../DaisyExamples/libDaisy//src/daisy_patch_sm.h \
  ../DaisyExamples/libDaisy//src/daisy.h \
  ../DaisyExamples/libDaisy//src/daisy_core.h \
  ../DaisyExamples/libDaisy//src/version.h \
@@ -233,8 +233,7 @@ build/myFreeverb_stereo.o: myFreeverb_stereo.cpp \
  ../DaisyExamples/libDaisy//src/util/VoctCalibration.h \
  ../DaisyExamples/libDaisy//src/util/WaveTableLoader.h \
  ../DaisyExamples/libDaisy//src/sys/fatfs.h \
- ../DaisyExamples/libDaisy//src/util/WavWriter.h \
- ../DaisyExamples/libDaisy//src/daisy_patch_sm.h
+ ../DaisyExamples/libDaisy//src/util/WavWriter.h
 ../DaisyExamples/libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h7xx.h:
 ../DaisyExamples/libDaisy//Drivers/CMSIS/Device/ST/STM32H7xx/Include/stm32h750xx.h:
 ../DaisyExamples/libDaisy//Drivers/CMSIS/Include/core_cm7.h:
@@ -384,7 +383,7 @@ build/myFreeverb_stereo.o: myFreeverb_stereo.cpp \
 ../DaisyExamples/DaisySP//Source/Utility/metro.h:
 ../DaisyExamples/DaisySP//Source/Utility/samplehold.h:
 ../DaisyExamples/DaisySP//Source/Utility/smooth_random.h:
-../DaisyExamples/libDaisy//src/daisy_seed.h:
+../DaisyExamples/libDaisy//src/daisy_patch_sm.h:
 ../DaisyExamples/libDaisy//src/daisy.h:
 ../DaisyExamples/libDaisy//src/daisy_core.h:
 ../DaisyExamples/libDaisy//src/version.h:
@@ -470,4 +469,3 @@ build/myFreeverb_stereo.o: myFreeverb_stereo.cpp \
 ../DaisyExamples/libDaisy//src/util/WaveTableLoader.h:
 ../DaisyExamples/libDaisy//src/sys/fatfs.h:
 ../DaisyExamples/libDaisy//src/util/WavWriter.h:
-../DaisyExamples/libDaisy//src/daisy_patch_sm.h:
