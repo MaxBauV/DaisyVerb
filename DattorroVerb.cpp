@@ -19,8 +19,12 @@ DelayLine<float, DELAYLINE2> DSY_SDRAM_BSS del_1_r;
 DelayLine<float, DELAYLINE3> DSY_SDRAM_BSS del_2_r;
 DelayLine<float, DELAYLINE4> DSY_SDRAM_BSS del_3_r;
 
+/** Instances of the hardware and the reverb */
 DaisyVersio  hw;
-VersioReverb reverb(ps_l, ps_r, del_0_l, del_1_l, del_2_l, del_3_l, del_0_r, del_1_r, del_2_r, del_3_r);
+VersioReverb reverb(
+	del_0_l, del_1_l, del_2_l, del_3_l,
+	del_0_r, del_1_r, del_2_r, del_3_r,
+	ps_l, ps_r);
 
 /** Pins & instances of the 3-way switches */
 constexpr Pin PIN_TOGGLE3_0A = seed::D6;
