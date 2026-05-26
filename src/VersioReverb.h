@@ -25,12 +25,15 @@ struct RtParams
 	float oscAmp;
 	float lpf;
 	int hpf;
+	float psValue;
+	int psRange;
 };
 
 class VersioReverb 
 {
 public:
 
+	VersioReverb(daisysp::PitchShifter &ps_l, daisysp::PitchShifter &ps_r);
 	/** 
 	 * @brief Initializes the reverb effect with the system sample rate.
 	 * @param sample_rate The sampling rate of the audio engine in Hz
@@ -76,6 +79,9 @@ private:
 	daisysp::Svf hpf_r_;
 	daisysp::Svf lpf_l_;
 	daisysp::Svf lpf_r_;
+
+	daisysp::PitchShifter &ps_l_;
+	daisysp::PitchShifter &ps_r_;
 
 	RtParams currParams_;
 

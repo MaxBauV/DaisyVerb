@@ -1,6 +1,11 @@
 #include "VersioReverb.h"
 #include "hid/switch3.h"
 
+VersioReverb::VersioReverb(daisysp::PitchShifter &ps_l, daisysp::PitchShifter &ps_r)
+	: ps_l_(ps_l), ps_r_(ps_r)
+{
+}
+
 void VersioReverb::Init(float sample_rate)
 {
 	/** Init Series Allpass Filters */
@@ -42,6 +47,10 @@ void VersioReverb::Init(float sample_rate)
 	osc_0_r_.SetWaveform(daisysp::Oscillator::WAVE_SIN);
 
 	lpf_0_l_ = lpf_1_l_ = lpf_0_r_ = lpf_1_r_ = 0.0f;
+
+	/** Init Pitchshifter */
+	ps_l_.Init(sample_rate);
+	ps_r_.Init(sample_rate);
 
 	/** Init End-Of-Chain High & Low Pass Filters */
 	hpf_l_.Init(sample_rate);
@@ -154,6 +163,29 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 
 	out_wet_r = tank_apf_2_out_r - output_node_1_r + tank_apf_3_out_r - feedback_sum_node_1_r;
 	out_wet_r *= (decay_atten_ * 1.5f * 1.5f);
+
+	/** Pitch Shifter */
+	float transposeValue;
+	switch (currParams_.psRange)
+	{
+		case daisy::Switch3::POS_LEFT:
+			transposeValue = daisysp::fmap(currParams_.psValue, -24.0f, 24.0f, daisysp::Mapping::LINEAR);
+			ps_l_.SetTransposition(transposeValue);
+			ps_r_.SetTransposition(transposeValue);
+			out_wet_l = ps_l_.Process(out_wet_l);
+			out_wet_r = ps_r_.Process(out_wet_r);
+			break;
+		case daisy::Switch3::POS_CENTER:
+			break;
+		case daisy::Switch3::POS_RIGHT:
+			transposeValue = daisysp::fmap(currParams_.psValue, -12.0f, 12.0f, daisysp::Mapping::LINEAR);
+			ps_l_.SetTransposition(transposeValue);
+			ps_r_.SetTransposition(transposeValue);
+			out_wet_l = ps_l_.Process(out_wet_l);
+			out_wet_r = ps_r_.Process(out_wet_r);
+			break;
+	}
+	
 
 	/** High Pass filter on wet signal */
 	switch (currParams_.hpf)

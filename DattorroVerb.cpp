@@ -5,21 +5,18 @@
 using namespace daisy;
 using namespace daisysp;
 
+PitchShifter DSY_SDRAM_BSS ps_l;
+PitchShifter DSY_SDRAM_BSS ps_r;
+
 DaisyVersio  hw;
-VersioReverb reverb;
-
-// --- DJ FILTER ---
-Svf   dj_filter_l;
-Svf   dj_filter_r;
-float dj_pot_val = 0.5f; 
-float min_freq   = 500.0f;
-float max_freq   = 4000.0f;
-
-float out_gain = 0.5f;
+VersioReverb reverb(ps_l, ps_r);
 
 constexpr Pin PIN_TOGGLE3_0A = seed::D6;
 constexpr Pin PIN_TOGGLE3_0B = seed::D5;
+constexpr Pin PIN_TOGGLE3_1A = seed::D1;
+constexpr Pin PIN_TOGGLE3_1B = seed::D0;
 Switch3 hpfSw;
+Switch3 psRangeSw;
 
 // Desmodus Versio Mapping
 constexpr uint8_t BLEND = 0;
@@ -42,7 +39,9 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 			hw.GetKnobValue(SPEED),
 			hw.GetKnobValue(INDEX),
 			hw.GetKnobValue(TONE),
-			hpfSw.Read()
+			hpfSw.Read(),
+			hw.GetKnobValue(REGEN),
+			psRangeSw.Read()
 		}
 	);
 
@@ -67,6 +66,7 @@ int main(void)
 	reverb.Init(hw.AudioSampleRate());
 
 	hpfSw.Init(PIN_TOGGLE3_0A, PIN_TOGGLE3_0B);
+	psRangeSw.Init(PIN_TOGGLE3_1A, PIN_TOGGLE3_1B);
 
 	hw.StartAdc();
 	hw.StartAudio(AudioCallback);
