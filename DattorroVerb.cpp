@@ -17,6 +17,10 @@ float max_freq   = 4000.0f;
 
 float out_gain = 0.5f;
 
+constexpr Pin PIN_TOGGLE3_0A = seed::D6;
+constexpr Pin PIN_TOGGLE3_0B = seed::D5;
+Switch3 hpfSw;
+
 // Desmodus Versio Mapping
 constexpr uint8_t BLEND = 0;
 constexpr uint8_t SPEED = 1;
@@ -28,41 +32,45 @@ constexpr uint8_t DENSE = 6;
 
 void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, size_t size)
 {
-	hw.ProcessAnalogControls(); 
-	out_gain = hw.GetKnobValue(BLEND);
+	hw.ProcessAnalogControls();
 
 	// Reverb Parameter Updaten
 	reverb.UpdateParameters(
-		hw.GetKnobValue(SIZE),
-		hw.GetKnobValue(DENSE),
-		hw.GetKnobValue(SPEED),
-		hw.GetKnobValue(INDEX)
+		{
+			hw.GetKnobValue(BLEND),
+			hw.GetKnobValue(SIZE),
+			hw.GetKnobValue(DENSE),
+			hw.GetKnobValue(SPEED),
+			hw.GetKnobValue(INDEX),
+			hw.GetKnobValue(TONE),
+			hpfSw.Read()
+		}
 	);
 
-	// Filter Drive zuweisen
-	float drive_val = hw.GetKnobValue(REGEN) * 0.01f;
-	dj_filter_l.SetDrive(drive_val);
-	dj_filter_r.SetDrive(drive_val);
+	// // Filter Drive zuweisen
+	// float drive_val = hw.GetKnobValue(REGEN) * 0.01f;
+	// dj_filter_l.SetDrive(drive_val);
+	// dj_filter_r.SetDrive(drive_val);
 
-	dj_pot_val = hw.GetKnobValue(TONE); 
+	// dj_pot_val = hw.GetKnobValue(TONE); 
 
-	// Filter Frequenz-Schnitt berechnen
-	float filter_freq = max_freq;
-	int filter_mode = 0;
+	// // Filter Frequenz-Schnitt berechnen
+	// float filter_freq = max_freq;
+	// int filter_mode = 0;
 
-	if (dj_pot_val < 0.48f) {
-		filter_mode = 1; 
-		float norm = dj_pot_val / 0.48f;
-		filter_freq = min_freq + (max_freq - min_freq) * (norm * norm);
-	}
-	else if (dj_pot_val > 0.52f) {
-		filter_mode = 2; 
-		float norm = (dj_pot_val - 0.52f) / 0.48f;
-		filter_freq = min_freq + (max_freq - min_freq) * (norm * norm);
-	}
+	// if (dj_pot_val < 0.48f) {
+	// 	filter_mode = 1; 
+	// 	float norm = dj_pot_val / 0.48f;
+	// 	filter_freq = min_freq + (max_freq - min_freq) * (norm * norm);
+	// }
+	// else if (dj_pot_val > 0.52f) {
+	// 	filter_mode = 2; 
+	// 	float norm = (dj_pot_val - 0.52f) / 0.48f;
+	// 	filter_freq = min_freq + (max_freq - min_freq) * (norm * norm);
+	// }
 
-	dj_filter_l.SetFreq(filter_freq);
-	dj_filter_r.SetFreq(filter_freq);
+	// dj_filter_l.SetFreq(filter_freq);
+	// dj_filter_r.SetFreq(filter_freq);
 
 	// Audio Block bearbeiten
 	for (size_t i = 0; i < size; i++)
@@ -71,20 +79,23 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 		float sig_out_r = 0.0f;
 
 		// 1. Reverb-Engine verarbeiten (True Stereo Input!)
-		reverb.Process(in[0][i], in[1][i], out_gain, sig_out_l, sig_out_r);
+		reverb.Process(in[0][i], in[1][i], sig_out_l, sig_out_r);
 
-		// 2. DJ-Filter auf das Wet-Signal anwenden
-		if (filter_mode != 0) {
-			dj_filter_l.Process(sig_out_l);
-			sig_out_l = (filter_mode == 1) ? dj_filter_l.Low() : dj_filter_l.High();
+		// // 2. DJ-Filter auf das Wet-Signal anwenden
+		// if (filter_mode != 0) {
+		// 	dj_filter_l.Process(sig_out_l);
+		// 	sig_out_l = (filter_mode == 1) ? dj_filter_l.Low() : dj_filter_l.High();
 
-			dj_filter_r.Process(sig_out_r);
-			sig_out_r = (filter_mode == 1) ? dj_filter_r.Low() : dj_filter_r.High();
-		}
+		// 	dj_filter_r.Process(sig_out_r);
+		// 	sig_out_r = (filter_mode == 1) ? dj_filter_r.Low() : dj_filter_r.High();
+		// }
 
-		// 3. Finaler Stereo-Mix (Wet + Dry)
-		out[0][i] = sig_out_l + ((1.0f - out_gain) * in[0][i]);
-		out[1][i] = sig_out_r + ((1.0f - out_gain) * in[1][i]);
+		// // 3. Finaler Stereo-Mix (Wet + Dry)
+		// out[0][i] = sig_out_l + ((1.0f - out_gain) * in[0][i]);
+		// out[1][i] = sig_out_r + ((1.0f - out_gain) * in[1][i]);
+
+		out[0][i] = sig_out_l;
+		out[1][i] = sig_out_r;
 	}
 }
 
@@ -97,9 +108,7 @@ int main(void)
 	// Reverb Klasse initialisieren
 	reverb.Init(hw.AudioSampleRate());
 
-	// DJ Filter initialisieren
-	dj_filter_l.Init(hw.AudioSampleRate()); dj_filter_l.SetRes(0.05f);
-	dj_filter_r.Init(hw.AudioSampleRate()); dj_filter_r.SetRes(0.05f);
+	hpfSw.Init(PIN_TOGGLE3_0A, PIN_TOGGLE3_0B);
 
 	hw.StartAdc();
 	hw.StartAudio(AudioCallback);
