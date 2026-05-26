@@ -47,8 +47,8 @@ public:
 		daisysp::DelayLine<float, DELAYLINE2> &del_1_r,
 		daisysp::DelayLine<float, DELAYLINE3> &del_2_r,
 		daisysp::DelayLine<float, DELAYLINE4> &del_3_r,
-		daisysp::PitchShifter &ps_l,
-		daisysp::PitchShifter &ps_r
+		AllpassFilter<4500U> (&series_l)[4],
+		AllpassFilter<4500U> (&series_r)[4]
 	);
 	/** 
 	 * @brief Initializes the reverb effect with the system sample rate.
@@ -72,11 +72,11 @@ public:
 	void Process(float in_l, float in_r, float &out_wet_l, float &out_wet_r);
 
 private:
-	AllpassFilter series_apf_l_[4];
-	AllpassFilter series_apf_r_[4];
+	AllpassFilter<4500U> (&series_apf_l_)[4];
+	AllpassFilter<4500U> (&series_apf_r_)[4];
 	
-	AllpassFilter tank_apf_0_l_, tank_apf_1_l_, tank_apf_2_l_, tank_apf_3_l_;
-	AllpassFilter tank_apf_0_r_, tank_apf_1_r_, tank_apf_2_r_, tank_apf_3_r_;
+	AllpassFilter<4500U> tank_apf_0_l_, tank_apf_1_l_, tank_apf_2_l_, tank_apf_3_l_;
+	AllpassFilter<4500U> tank_apf_0_r_, tank_apf_1_r_, tank_apf_2_r_, tank_apf_3_r_;
 
 	daisysp::DelayLine<float, DELAYLINE1> &del_0_l_;
 	daisysp::DelayLine<float, DELAYLINE2> &del_1_l_;
@@ -96,8 +96,8 @@ private:
 	daisysp::Svf lpf_l_;
 	daisysp::Svf lpf_r_;
 
-	daisysp::PitchShifter &ps_l_;
-	daisysp::PitchShifter &ps_r_;
+	daisysp::PitchShifter ps_l_;
+	daisysp::PitchShifter ps_r_;
 
 	RtParams currParams_;
 

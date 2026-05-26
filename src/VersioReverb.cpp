@@ -1,5 +1,8 @@
 #include "VersioReverb.h"
+#include "AllpassFilter.h"
 #include "hid/switch3.h"
+
+constexpr size_t MAX_ALLPASS_DELAY = 4500U;
 
 VersioReverb::VersioReverb(
 	daisysp::DelayLine<float, DELAYLINE1> &del_0_l,
@@ -10,11 +13,9 @@ VersioReverb::VersioReverb(
 	daisysp::DelayLine<float, DELAYLINE2> &del_1_r,
 	daisysp::DelayLine<float, DELAYLINE3> &del_2_r,
 	daisysp::DelayLine<float, DELAYLINE4> &del_3_r,
-	daisysp::PitchShifter &ps_l,
-	daisysp::PitchShifter &ps_r
+	AllpassFilter<4500U> (&series_l)[4],
+	AllpassFilter<4500U> (&series_r)[4]
 ) :
-	ps_l_(ps_l),
-	ps_r_(ps_r),
 	del_0_l_(del_0_l),
 	del_1_l_(del_1_l),
 	del_2_l_(del_2_l),
@@ -22,7 +23,9 @@ VersioReverb::VersioReverb(
 	del_0_r_(del_0_r),
 	del_1_r_(del_1_r),
 	del_2_r_(del_2_r),
-	del_3_r_(del_3_r)
+	del_3_r_(del_3_r),
+	series_apf_l_(series_l),
+	series_apf_r_(series_r)
 {
 }
 
@@ -230,13 +233,13 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 			break;
 	}
 
-	/** Low Pass filter on wet signal */
-	lpf_l_.SetFreq(currParams_.lpf);
-	lpf_r_.SetFreq(currParams_.lpf);
-	lpf_l_.Process(out_wet_l);
-	lpf_r_.Process(out_wet_r);
-	out_wet_l = lpf_l_.Low();
-	out_wet_r = lpf_r_.Low();
+	// /** Low Pass filter on wet signal */
+	// lpf_l_.SetFreq(currParams_.lpf);
+	// lpf_r_.SetFreq(currParams_.lpf);
+	// lpf_l_.Process(out_wet_l);
+	// lpf_r_.Process(out_wet_r);
+	// out_wet_l = lpf_l_.Low();
+	// out_wet_r = lpf_r_.Low();
 
 	/** Blend mixing */
 	out_wet_l = out_wet_l + ((1.0 - currParams_.blend) * in_l);

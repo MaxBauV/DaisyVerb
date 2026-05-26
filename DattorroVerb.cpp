@@ -1,14 +1,12 @@
 #include "daisy_versio.h"
 #include "daisysp.h"
 #include "src/VersioReverb.h"
+#include "src/AllpassFilter.h"
 
 using namespace daisy;
 using namespace daisysp;
 
 /** Memory-intensive instances are stored in SDRAM and passed by reference to the reverb class. */
-PitchShifter DSY_SDRAM_BSS ps_l;
-PitchShifter DSY_SDRAM_BSS ps_r;
-
 DelayLine<float, DELAYLINE1> DSY_SDRAM_BSS del_0_l;
 DelayLine<float, DELAYLINE2> DSY_SDRAM_BSS del_1_l;
 DelayLine<float, DELAYLINE3> DSY_SDRAM_BSS del_2_l;
@@ -19,12 +17,15 @@ DelayLine<float, DELAYLINE2> DSY_SDRAM_BSS del_1_r;
 DelayLine<float, DELAYLINE3> DSY_SDRAM_BSS del_2_r;
 DelayLine<float, DELAYLINE4> DSY_SDRAM_BSS del_3_r;
 
+AllpassFilter<4500U> DSY_SDRAM_BSS apf_series_l[4];
+AllpassFilter<4500U> DSY_SDRAM_BSS apf_series_r[4];
+
 /** Instances of the hardware and the reverb */
 DaisyVersio  hw;
 VersioReverb reverb(
 	del_0_l, del_1_l, del_2_l, del_3_l,
 	del_0_r, del_1_r, del_2_r, del_3_r,
-	ps_l, ps_r);
+	apf_series_l, apf_series_r);
 
 /** Pins & instances of the 3-way switches */
 constexpr Pin PIN_TOGGLE3_0A = seed::D6;

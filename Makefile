@@ -7,7 +7,6 @@ LIBS_DIR = libs
 
 # Sources
 # CPP_SOURCES = FDN_stereo.cpp
-CPP_SOURCES = $(SRC_DIR)/AllpassFilter.cpp
 CPP_SOURCES += $(SRC_DIR)/VersioReverb.cpp
 CPP_SOURCES += DattorroVerb.cpp
 
