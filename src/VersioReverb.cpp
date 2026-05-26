@@ -1,8 +1,28 @@
 #include "VersioReverb.h"
 #include "hid/switch3.h"
 
-VersioReverb::VersioReverb(daisysp::PitchShifter &ps_l, daisysp::PitchShifter &ps_r)
-	: ps_l_(ps_l), ps_r_(ps_r)
+VersioReverb::VersioReverb(
+	daisysp::PitchShifter &ps_l,
+	daisysp::PitchShifter &ps_r,
+	daisysp::DelayLine<float, DELAYLINE1> del_0_l,
+	daisysp::DelayLine<float, DELAYLINE2> del_1_l,
+	daisysp::DelayLine<float, DELAYLINE3> del_2_l,
+	daisysp::DelayLine<float, DELAYLINE4> del_3_l,
+	daisysp::DelayLine<float, DELAYLINE1> del_0_r,
+	daisysp::DelayLine<float, DELAYLINE2> del_1_r,
+	daisysp::DelayLine<float, DELAYLINE3> del_2_r,
+	daisysp::DelayLine<float, DELAYLINE4> del_3_r
+) :
+	ps_l_(ps_l),
+	ps_r_(ps_r),
+	del_0_l_(del_0_l),
+	del_1_l_(del_1_l),
+	del_2_l_(del_2_l),
+	del_3_l_(del_3_l),
+	del_0_r_(del_0_r),
+	del_1_r_(del_1_r),
+	del_2_r_(del_2_r),
+	del_3_r_(del_3_r)
 {
 }
 

@@ -2,6 +2,11 @@
 #include "daisysp.h"
 #include "AllpassFilter.h"
 
+constexpr uint16_t DELAYLINE1 = 7183U;
+constexpr uint16_t DELAYLINE2 = 6000U;
+constexpr uint16_t DELAYLINE3 = 6802U;
+constexpr uint16_t DELAYLINE4 = 5102U;
+
 /**
  * @brief Cutoff frequencies for the internal high-pass filter.
  * Defines preset frequency values of the end-of-chain hpf.
@@ -33,7 +38,18 @@ class VersioReverb
 {
 public:
 
-	VersioReverb(daisysp::PitchShifter &ps_l, daisysp::PitchShifter &ps_r);
+	VersioReverb(
+		daisysp::PitchShifter &ps_l,
+		daisysp::PitchShifter &ps_r,
+		daisysp::DelayLine<float, DELAYLINE1> del_0_l,
+		daisysp::DelayLine<float, DELAYLINE2> del_1_l,
+		daisysp::DelayLine<float, DELAYLINE3> del_2_l,
+		daisysp::DelayLine<float, DELAYLINE4> del_3_l,
+		daisysp::DelayLine<float, DELAYLINE1> del_0_r,
+		daisysp::DelayLine<float, DELAYLINE2> del_1_r,
+		daisysp::DelayLine<float, DELAYLINE3> del_2_r,
+		daisysp::DelayLine<float, DELAYLINE4> del_3_r
+	);
 	/** 
 	 * @brief Initializes the reverb effect with the system sample rate.
 	 * @param sample_rate The sampling rate of the audio engine in Hz
@@ -62,15 +78,15 @@ private:
 	AllpassFilter tank_apf_0_l_, tank_apf_1_l_, tank_apf_2_l_, tank_apf_3_l_;
 	AllpassFilter tank_apf_0_r_, tank_apf_1_r_, tank_apf_2_r_, tank_apf_3_r_;
 
-	daisysp::DelayLine<float, 7183U> del_0_l_;
-	daisysp::DelayLine<float, 6000U> del_1_l_;
-	daisysp::DelayLine<float, 6802U> del_2_l_;
-	daisysp::DelayLine<float, 5102U> del_3_l_;
+	daisysp::DelayLine<float, DELAYLINE1> &del_0_l_;
+	daisysp::DelayLine<float, DELAYLINE2> &del_1_l_;
+	daisysp::DelayLine<float, DELAYLINE3> &del_2_l_;
+	daisysp::DelayLine<float, DELAYLINE4> &del_3_l_;
 
-	daisysp::DelayLine<float, 7183U> del_0_r_;
-	daisysp::DelayLine<float, 6000U> del_1_r_;
-	daisysp::DelayLine<float, 6802U> del_2_r_;
-	daisysp::DelayLine<float, 5102U> del_3_r_;
+	daisysp::DelayLine<float, DELAYLINE1> &del_0_r_;
+	daisysp::DelayLine<float, DELAYLINE2> &del_1_r_;
+	daisysp::DelayLine<float, DELAYLINE3> &del_2_r_;
+	daisysp::DelayLine<float, DELAYLINE4> &del_3_r_;
 
 	daisysp::Oscillator osc_0_l_;
 	daisysp::Oscillator osc_0_r_;

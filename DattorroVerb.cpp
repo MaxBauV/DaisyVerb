@@ -5,20 +5,33 @@
 using namespace daisy;
 using namespace daisysp;
 
+/** Memory-intensive instances are stored in SDRAM and passed by reference to the reverb class. */
 PitchShifter DSY_SDRAM_BSS ps_l;
 PitchShifter DSY_SDRAM_BSS ps_r;
 
-DaisyVersio  hw;
-VersioReverb reverb(ps_l, ps_r);
+DelayLine<float, DELAYLINE1> DSY_SDRAM_BSS del_0_l;
+DelayLine<float, DELAYLINE2> DSY_SDRAM_BSS del_1_l;
+DelayLine<float, DELAYLINE3> DSY_SDRAM_BSS del_2_l;
+DelayLine<float, DELAYLINE4> DSY_SDRAM_BSS del_3_l;
 
+DelayLine<float, DELAYLINE1> DSY_SDRAM_BSS del_0_r;
+DelayLine<float, DELAYLINE2> DSY_SDRAM_BSS del_1_r;
+DelayLine<float, DELAYLINE3> DSY_SDRAM_BSS del_2_r;
+DelayLine<float, DELAYLINE4> DSY_SDRAM_BSS del_3_r;
+
+DaisyVersio  hw;
+VersioReverb reverb(ps_l, ps_r, del_0_l, del_1_l, del_2_l, del_3_l, del_0_r, del_1_r, del_2_r, del_3_r);
+
+/** Pins & instances of the 3-way switches */
 constexpr Pin PIN_TOGGLE3_0A = seed::D6;
 constexpr Pin PIN_TOGGLE3_0B = seed::D5;
 constexpr Pin PIN_TOGGLE3_1A = seed::D1;
 constexpr Pin PIN_TOGGLE3_1B = seed::D0;
+
 Switch3 hpfSw;
 Switch3 psRangeSw;
 
-// Desmodus Versio Mapping
+/** Using Desmodus Versio Names for Pot-Mapping */
 constexpr uint8_t BLEND = 0;
 constexpr uint8_t SPEED = 1;
 constexpr uint8_t TONE  = 2;
