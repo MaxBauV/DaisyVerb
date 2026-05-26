@@ -1,5 +1,16 @@
 # Adapted "dattorroW Reverb - sounds fucking awesome
 
+## Getting the source
+
+```git clone --recursive```
+
+or
+
+```
+git clone 
+git submodule update --init
+```
+
 ## TODO:
 - Blend Poti:
     - erste hälte: input volume bleibt gleich laut, nur reverb wird lauter (letzteres: so wie jetzt)
