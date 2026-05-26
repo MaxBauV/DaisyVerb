@@ -39,14 +39,14 @@ class VersioReverb
 public:
 
 	VersioReverb(
-		daisysp::DelayLine<float, DELAYLINE1> del_0_l,
-		daisysp::DelayLine<float, DELAYLINE2> del_1_l,
-		daisysp::DelayLine<float, DELAYLINE3> del_2_l,
-		daisysp::DelayLine<float, DELAYLINE4> del_3_l,
-		daisysp::DelayLine<float, DELAYLINE1> del_0_r,
-		daisysp::DelayLine<float, DELAYLINE2> del_1_r,
-		daisysp::DelayLine<float, DELAYLINE3> del_2_r,
-		daisysp::DelayLine<float, DELAYLINE4> del_3_r,
+		daisysp::DelayLine<float, DELAYLINE1> &del_0_l,
+		daisysp::DelayLine<float, DELAYLINE2> &del_1_l,
+		daisysp::DelayLine<float, DELAYLINE3> &del_2_l,
+		daisysp::DelayLine<float, DELAYLINE4> &del_3_l,
+		daisysp::DelayLine<float, DELAYLINE1> &del_0_r,
+		daisysp::DelayLine<float, DELAYLINE2> &del_1_r,
+		daisysp::DelayLine<float, DELAYLINE3> &del_2_r,
+		daisysp::DelayLine<float, DELAYLINE4> &del_3_r,
 		daisysp::PitchShifter &ps_l,
 		daisysp::PitchShifter &ps_r
 	);
