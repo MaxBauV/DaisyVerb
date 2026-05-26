@@ -3,9 +3,9 @@
 
 void VersioReverb::Init(float sample_rate)
 {
+	/** Init Series Allpass Filters */
 	unsigned int series_lengths[4] = {223U, 557U, 443U, 337U};
 
-	// Linker und rechter Kanal parallel initialisieren
 	for(int i = 0; i < 4; i++) {
 		series_apf_l_[i].Init(series_lengths[i]);
 		series_apf_l_[i].SetGain(0.7f);
@@ -13,7 +13,7 @@ void VersioReverb::Init(float sample_rate)
 		series_apf_r_[i].SetGain(0.7f);
 	}
 
-	// Tank-APFs für beide Seiten einrichten
+	/** Init Tank Allpass Filters */
 	tank_apf_0_l_.Init(1083U); tank_apf_0_l_.SetGain(-0.7f);
 	tank_apf_1_l_.Init(2903U); tank_apf_1_l_.SetGain(0.5f);
 	tank_apf_2_l_.Init(1464U); tank_apf_2_l_.SetGain(-0.7f);
@@ -24,7 +24,7 @@ void VersioReverb::Init(float sample_rate)
 	tank_apf_2_r_.Init(1464U); tank_apf_2_r_.SetGain(-0.7f);
 	tank_apf_3_r_.Init(4283U); tank_apf_3_r_.SetGain(0.5f);
 
-	// Feedback-Delay-Lines
+	/** Init Feedback Delay Lines */
 	del_0_l_.Init(); del_0_l_.SetDelay(7182U);
 	del_1_l_.Init(); del_1_l_.SetDelay(5999U);
 	del_2_l_.Init(); del_2_l_.SetDelay(6801U);
@@ -35,7 +35,7 @@ void VersioReverb::Init(float sample_rate)
 	del_2_r_.Init(); del_2_r_.SetDelay(6801U);
 	del_3_r_.Init(); del_3_r_.SetDelay(5101U);
 
-	// Modulations-Oszillatoren
+	/** Init Modulation LFO */
 	osc_0_l_.Init(sample_rate);
 	osc_0_l_.SetWaveform(daisysp::Oscillator::WAVE_SIN);
 	osc_0_r_.Init(sample_rate);
@@ -43,7 +43,7 @@ void VersioReverb::Init(float sample_rate)
 
 	lpf_0_l_ = lpf_1_l_ = lpf_0_r_ = lpf_1_r_ = 0.0f;
 
-	// End-of-Chain LPF & HPF on reverb wet
+	/** Init End-Of-Chain High & Low Pass Filters */
 	hpf_l_.Init(sample_rate);
 	hpf_r_.Init(sample_rate);
 	lpf_l_.Init(sample_rate);
@@ -83,7 +83,7 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	float osc_v_l = osc_0_l_.Process();
 	float osc_v_r = osc_0_r_.Process();
 
-	// 1. SCHRITT: ALLE DELAYS ZUERST LESEN (Verhindert Phasen-Asymmetrie)
+	/** Read all delays first (prevents phase shifting) */
 	float del_3_l_val = del_3_l_.Read();
 	float del_1_l_val = del_1_l_.Read();
 	float del_0_l_val = del_0_l_.Read();
@@ -94,7 +94,7 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	float del_0_r_val = del_0_r_.Read();
 	float del_2_r_val = del_2_r_.Read();
 
-	// 2. SCHRITT: INPUT & SERIELLE APFs (Bleiben getrennt)
+	/** Series Allpass Filters */
 	float x_l = in_l * currParams_.blend; 
 	float series_apf_y_l = x_l;
 	for(int i = 0; i < 4; i++) {
@@ -107,15 +107,14 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 		series_apf_y_r = series_apf_r_[i].Process(series_apf_y_r);
 	}
 
-	// 3. SCHRITT: CROSSTALK UND REVERB TANK BERECHNEN
-	// Links nutzt das Feedback von RECHTS, Rechts nutzt das Feedback von LINKS
-	float feedback_sum_node_0_l = series_apf_y_l + (decay_ * del_3_r_val); // <-- Überkreuz
-	float feedback_sum_node_1_l = series_apf_y_l + (decay_ * del_1_r_val); // <-- Überkreuz
+	/** Crosstalk (left & right) */
+	float feedback_sum_node_0_l = series_apf_y_l + (decay_ * del_3_r_val);
+	float feedback_sum_node_1_l = series_apf_y_l + (decay_ * del_1_r_val);
 
-	float feedback_sum_node_0_r = series_apf_y_r + (decay_ * del_3_l_val); // <-- Überkreuz
-	float feedback_sum_node_1_r = series_apf_y_r + (decay_ * del_1_l_val); // <-- Überkreuz
+	float feedback_sum_node_0_r = series_apf_y_r + (decay_ * del_3_l_val);
+	float feedback_sum_node_1_r = series_apf_y_r + (decay_ * del_1_l_val);
 
-	// --- LINKER KANAL TANK ---
+	/** Left reverb tank */
 	float tank_apf_0_out_l = tank_apf_0_l_.ProcessHermite(feedback_sum_node_0_l, 1083.0f + osc_v_l);
 	lpf_0_l_               = (del_0_l_val * bandwidth_) + (lpf_0_l_ * damping_);
 	del_0_l_.Write(tank_apf_0_out_l);
@@ -132,7 +131,7 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	float tank_apf_3_out_l = tank_apf_3_l_.Process(output_node_1_l);
 	del_3_l_.Write(tank_apf_3_out_l);
 
-	// --- RECHTER KANAL TANK ---
+	/** Right reverb tank */
 	float tank_apf_0_out_r = tank_apf_0_r_.ProcessHermite(feedback_sum_node_0_r, 1083.0f + osc_v_r);
 	lpf_0_r_               = (del_0_r_val * bandwidth_) + (lpf_0_r_ * damping_);
 	del_0_r_.Write(tank_apf_0_out_r);
@@ -149,16 +148,14 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	float tank_apf_3_out_r = tank_apf_3_r_.Process(output_node_1_r);
 	del_3_r_.Write(tank_apf_3_out_r);
 
-	// 4. SCHRITT: TAP OUTPUTS MISCHEN
+	/** Mix Output Taps */
 	out_wet_l = tank_apf_0_out_l - output_node_0_l + tank_apf_1_out_l - feedback_sum_node_0_l;
 	out_wet_l *= (decay_atten_ * 1.5f * 1.5f);
 
 	out_wet_r = tank_apf_2_out_r - output_node_1_r + tank_apf_3_out_r - feedback_sum_node_1_r;
 	out_wet_r *= (decay_atten_ * 1.5f * 1.5f);
 
-	// Filtering
-
-	// High-Pass Filter
+	/** High Pass filter on wet signal */
 	switch (currParams_.hpf)
 	{
 		case daisy::Switch3::POS_LEFT:
@@ -181,7 +178,7 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 			break;
 	}
 
-	// Low Pass Filter
+	/** Low Pass filter on wet signal */
 	lpf_l_.SetFreq(currParams_.lpf);
 	lpf_r_.SetFreq(currParams_.lpf);
 	lpf_l_.Process(out_wet_l);
@@ -189,7 +186,7 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	out_wet_l = lpf_l_.Low();
 	out_wet_r = lpf_r_.Low();
 
-	// Mix with dry signal
+	/** Blend mixing */
 	out_wet_l = out_wet_l + ((1.0 - currParams_.blend) * in_l);
 	out_wet_r = out_wet_r + ((1.0 - currParams_.blend) * in_r);
 }
