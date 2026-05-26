@@ -1,4 +1,5 @@
 #include "VersioReverb.h"
+#include "hid/switch3.h"
 
 void VersioReverb::Init(float sample_rate)
 {
@@ -43,8 +44,20 @@ void VersioReverb::Init(float sample_rate)
 	lpf_0_l_ = lpf_1_l_ = lpf_0_r_ = lpf_1_r_ = 0.0f;
 
 	// End-of-Chain LPF & HPF on reverb wet
-	hpf_.Init(sample_rate);
-	lpf_.Init(sample_rate);
+	hpf_l_.Init(sample_rate);
+	hpf_r_.Init(sample_rate);
+	lpf_l_.Init(sample_rate);
+	lpf_r_.Init(sample_rate);
+
+	hpf_l_.SetDrive(0.0f);
+	hpf_r_.SetDrive(0.0f);
+	lpf_l_.SetDrive(0.0f);
+	lpf_r_.SetDrive(0.0f);
+
+	hpf_l_.SetRes(0.0f);
+	hpf_r_.SetRes(0.0f);
+	lpf_l_.SetRes(0.0f);
+	lpf_r_.SetRes(0.0f);
 }
 
 void VersioReverb::UpdateParameters(RtParams params)
@@ -146,7 +159,35 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	// Filtering
 
 	// High-Pass Filter
-	// switch (hpfSt)
+	switch (currParams_.hpf)
+	{
+		case daisy::Switch3::POS_LEFT:
+			break;
+		case daisy::Switch3::POS_CENTER:
+			hpf_l_.SetFreq(HighPassFreq::LOWS);
+			hpf_r_.SetFreq(HighPassFreq::LOWS);
+			hpf_l_.Process(out_wet_l);
+			hpf_r_.Process(out_wet_r);
+			out_wet_l = hpf_l_.High();
+			out_wet_r = hpf_r_.High();
+			break;
+		case daisy::Switch3::POS_RIGHT:
+			hpf_l_.SetFreq(HighPassFreq::LOWS);
+			hpf_r_.SetFreq(HighPassFreq::LOWS);
+			hpf_l_.Process(out_wet_l);
+			hpf_r_.Process(out_wet_r);
+			out_wet_l = hpf_l_.High();
+			out_wet_r = hpf_r_.High();
+			break;
+	}
+
+	// Low Pass Filter
+	lpf_l_.SetFreq(currParams_.lpf);
+	lpf_r_.SetFreq(currParams_.lpf);
+	lpf_l_.Process(out_wet_l);
+	lpf_r_.Process(out_wet_r);
+	out_wet_l = lpf_l_.Low();
+	out_wet_r = lpf_r_.Low();
 
 	// Mix with dry signal
 	out_wet_l = out_wet_l + ((1.0 - currParams_.blend) * in_l);

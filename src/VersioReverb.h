@@ -2,13 +2,6 @@
 #include "daisysp.h"
 #include "AllpassFilter.h"
 
-enum SwitchPos : uint8_t
-{
-	LEFT = 0,
-	MIDDLE,
-	RIGHT,
-};
-
 enum HighPassFreq
 {
 	LOWS = 400,
@@ -53,8 +46,11 @@ private:
 	daisysp::Oscillator osc_0_l_;
 	daisysp::Oscillator osc_0_r_;
 
-	daisysp::Svf hpf_;
-	daisysp::Svf lpf_;
+	daisysp::Svf hpf_l_;
+	daisysp::Svf hpf_r_;
+	daisysp::Svf lpf_l_;
+	daisysp::Svf lpf_r_;
+
 
 	RtParams currParams_;
 

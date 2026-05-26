@@ -34,7 +34,6 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 {
 	hw.ProcessAnalogControls();
 
-	// Reverb Parameter Updaten
 	reverb.UpdateParameters(
 		{
 			hw.GetKnobValue(BLEND),
@@ -47,52 +46,12 @@ void AudioCallback(AudioHandle::InputBuffer in, AudioHandle::OutputBuffer out, s
 		}
 	);
 
-	// // Filter Drive zuweisen
-	// float drive_val = hw.GetKnobValue(REGEN) * 0.01f;
-	// dj_filter_l.SetDrive(drive_val);
-	// dj_filter_r.SetDrive(drive_val);
-
-	// dj_pot_val = hw.GetKnobValue(TONE); 
-
-	// // Filter Frequenz-Schnitt berechnen
-	// float filter_freq = max_freq;
-	// int filter_mode = 0;
-
-	// if (dj_pot_val < 0.48f) {
-	// 	filter_mode = 1; 
-	// 	float norm = dj_pot_val / 0.48f;
-	// 	filter_freq = min_freq + (max_freq - min_freq) * (norm * norm);
-	// }
-	// else if (dj_pot_val > 0.52f) {
-	// 	filter_mode = 2; 
-	// 	float norm = (dj_pot_val - 0.52f) / 0.48f;
-	// 	filter_freq = min_freq + (max_freq - min_freq) * (norm * norm);
-	// }
-
-	// dj_filter_l.SetFreq(filter_freq);
-	// dj_filter_r.SetFreq(filter_freq);
-
-	// Audio Block bearbeiten
 	for (size_t i = 0; i < size; i++)
 	{
 		float sig_out_l = 0.0f;
 		float sig_out_r = 0.0f;
 
-		// 1. Reverb-Engine verarbeiten (True Stereo Input!)
 		reverb.Process(in[0][i], in[1][i], sig_out_l, sig_out_r);
-
-		// // 2. DJ-Filter auf das Wet-Signal anwenden
-		// if (filter_mode != 0) {
-		// 	dj_filter_l.Process(sig_out_l);
-		// 	sig_out_l = (filter_mode == 1) ? dj_filter_l.Low() : dj_filter_l.High();
-
-		// 	dj_filter_r.Process(sig_out_r);
-		// 	sig_out_r = (filter_mode == 1) ? dj_filter_r.Low() : dj_filter_r.High();
-		// }
-
-		// // 3. Finaler Stereo-Mix (Wet + Dry)
-		// out[0][i] = sig_out_l + ((1.0f - out_gain) * in[0][i]);
-		// out[1][i] = sig_out_r + ((1.0f - out_gain) * in[1][i]);
 
 		out[0][i] = sig_out_l;
 		out[1][i] = sig_out_r;
@@ -104,8 +63,7 @@ int main(void)
 	hw.Init();
 	hw.SetAudioBlockSize(4);
 	hw.SetAudioSampleRate(SaiHandle::Config::SampleRate::SAI_48KHZ);
-	
-	// Reverb Klasse initialisieren
+
 	reverb.Init(hw.AudioSampleRate());
 
 	hpfSw.Init(PIN_TOGGLE3_0A, PIN_TOGGLE3_0B);
@@ -114,7 +72,6 @@ int main(void)
 	hw.StartAudio(AudioCallback);
 	
 	while(1) {
-		// Der Haupt-Loop bleibt frei für System-Tasks
 		System::Delay(10);
 	}
 }
