@@ -233,13 +233,14 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 			break;
 	}
 
-	// /** Low Pass filter on wet signal */
-	// lpf_l_.SetFreq(currParams_.lpf);
-	// lpf_r_.SetFreq(currParams_.lpf);
-	// lpf_l_.Process(out_wet_l);
-	// lpf_r_.Process(out_wet_r);
-	// out_wet_l = lpf_l_.Low();
-	// out_wet_r = lpf_r_.Low();
+	/** Low Pass filter on wet signal */
+	currParams_.lpf = daisysp::fmap(currParams_.lpf, 20, 20000, daisysp::Mapping::LINEAR);
+	lpf_l_.SetFreq(currParams_.lpf);
+	lpf_r_.SetFreq(currParams_.lpf);
+	lpf_l_.Process(out_wet_l);
+	lpf_r_.Process(out_wet_r);
+	out_wet_l = lpf_l_.Low();
+	out_wet_r = lpf_r_.Low();
 
 	/** Blend mixing */
 	out_wet_l = out_wet_l + ((1.0 - currParams_.blend) * in_l);
