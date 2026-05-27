@@ -95,23 +95,18 @@ void VersioReverb::Init(float sample_rate)
 void VersioReverb::UpdateParameters(RtParams params)
 {
 	currParams_ = params;
+}
 
-	damping_     = (0.9f * params.damp) + 0.0008f;
-	bandwidth_   = 1.0f - damping_;
-	decay_       = (0.8f * params.size) + 0.1f;
-	decay_atten_ = 1.0f - powf(decay_, 2.0f);
-
-	float osc_freq = (9.0f * params.oscSpeed) + 1.0f;
-	float osc_amp  = (96.0f * params.oscAmp) + 4.0f;
+void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_wet_r)
+{
+	float osc_freq = (9.0f * currParams_.oscSpeed) + 1.0f;
+	float osc_amp  = (96.0f * currParams_.oscAmp) + 4.0f;
 
 	osc_0_l_.SetFreq(osc_freq);
 	osc_0_l_.SetAmp(osc_amp);
 	osc_0_r_.SetFreq(osc_freq);
 	osc_0_r_.SetAmp(osc_amp);
-}
 
-void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_wet_r)
-{
 	float osc_v_l = osc_0_l_.Process();
 	float osc_v_r = osc_0_r_.Process();
 
@@ -139,12 +134,20 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 		series_apf_y_r = series_apf_r_[i].Process(series_apf_y_r);
 	}
 
+	/** Calculate Delay */
+	decay_       = (0.8f * currParams_.size) + 0.1f;
+	decay_atten_ = 1.0f - powf(decay_, 2.0f);
+
 	/** Crosstalk (left & right) */
 	float feedback_sum_node_0_l = series_apf_y_l + (decay_ * del_3_r_val);
 	float feedback_sum_node_1_l = series_apf_y_l + (decay_ * del_1_r_val);
 
 	float feedback_sum_node_0_r = series_apf_y_r + (decay_ * del_3_l_val);
 	float feedback_sum_node_1_r = series_apf_y_r + (decay_ * del_1_l_val);
+
+	/** Calculate params for both reverb tanks */
+	damping_	= (0.9f * currParams_.damp) + 0.0008f;
+	bandwidth_	= 1.0f - damping_;
 
 	/** Left reverb tank */
 	float tank_apf_0_out_l = tank_apf_0_l_.ProcessHermite(feedback_sum_node_0_l, 1083.0f + osc_v_l);
