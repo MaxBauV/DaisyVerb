@@ -39,6 +39,8 @@ class VersioReverb
 public:
 
 	VersioReverb(
+		AllpassFilter<4500U> (&series_l)[4],
+		AllpassFilter<4500U> (&series_r)[4],
 		daisysp::DelayLine<float, DELAYLINE1> &del_0_l,
 		daisysp::DelayLine<float, DELAYLINE2> &del_1_l,
 		daisysp::DelayLine<float, DELAYLINE3> &del_2_l,
@@ -46,9 +48,7 @@ public:
 		daisysp::DelayLine<float, DELAYLINE1> &del_0_r,
 		daisysp::DelayLine<float, DELAYLINE2> &del_1_r,
 		daisysp::DelayLine<float, DELAYLINE3> &del_2_r,
-		daisysp::DelayLine<float, DELAYLINE4> &del_3_r,
-		AllpassFilter<4500U> (&series_l)[4],
-		AllpassFilter<4500U> (&series_r)[4]
+		daisysp::DelayLine<float, DELAYLINE4> &del_3_r
 	);
 	/** 
 	 * @brief Initializes the reverb effect with the system sample rate.
@@ -75,18 +75,18 @@ private:
 	AllpassFilter<4500U> (&series_apf_l_)[4];
 	AllpassFilter<4500U> (&series_apf_r_)[4];
 	
-	AllpassFilter<4500U> tank_apf_0_l_, tank_apf_1_l_, tank_apf_2_l_, tank_apf_3_l_;
-	AllpassFilter<4500U> tank_apf_0_r_, tank_apf_1_r_, tank_apf_2_r_, tank_apf_3_r_;
-
 	daisysp::DelayLine<float, DELAYLINE1> &del_0_l_;
 	daisysp::DelayLine<float, DELAYLINE2> &del_1_l_;
 	daisysp::DelayLine<float, DELAYLINE3> &del_2_l_;
 	daisysp::DelayLine<float, DELAYLINE4> &del_3_l_;
-
+	
 	daisysp::DelayLine<float, DELAYLINE1> &del_0_r_;
 	daisysp::DelayLine<float, DELAYLINE2> &del_1_r_;
 	daisysp::DelayLine<float, DELAYLINE3> &del_2_r_;
 	daisysp::DelayLine<float, DELAYLINE4> &del_3_r_;
+	
+	AllpassFilter<4500U> tank_apf_0_l_, tank_apf_1_l_, tank_apf_2_l_, tank_apf_3_l_;
+	AllpassFilter<4500U> tank_apf_0_r_, tank_apf_1_r_, tank_apf_2_r_, tank_apf_3_r_;
 
 	daisysp::Oscillator osc_0_l_;
 	daisysp::Oscillator osc_0_r_;

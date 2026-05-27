@@ -1,7 +1,6 @@
 #include "daisy_versio.h"
 #include "daisysp.h"
 #include "src/VersioReverb.h"
-#include "src/AllpassFilter.h"
 
 using namespace daisy;
 using namespace daisysp;
@@ -23,9 +22,9 @@ AllpassFilter<4500U> DSY_SDRAM_BSS apf_series_r[4];
 /** Instances of the hardware and the reverb */
 DaisyVersio  hw;
 VersioReverb reverb(
+	apf_series_l, apf_series_r,
 	del_0_l, del_1_l, del_2_l, del_3_l,
-	del_0_r, del_1_r, del_2_r, del_3_r,
-	apf_series_l, apf_series_r);
+	del_0_r, del_1_r, del_2_r, del_3_r);
 
 /** Pins & instances of the 3-way switches */
 constexpr Pin PIN_TOGGLE3_0A = seed::D6;

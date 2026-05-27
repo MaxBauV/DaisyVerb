@@ -5,6 +5,8 @@
 constexpr size_t MAX_ALLPASS_DELAY = 4500U;
 
 VersioReverb::VersioReverb(
+	AllpassFilter<4500U> (&series_l)[4],
+	AllpassFilter<4500U> (&series_r)[4],
 	daisysp::DelayLine<float, DELAYLINE1> &del_0_l,
 	daisysp::DelayLine<float, DELAYLINE2> &del_1_l,
 	daisysp::DelayLine<float, DELAYLINE3> &del_2_l,
@@ -12,10 +14,10 @@ VersioReverb::VersioReverb(
 	daisysp::DelayLine<float, DELAYLINE1> &del_0_r,
 	daisysp::DelayLine<float, DELAYLINE2> &del_1_r,
 	daisysp::DelayLine<float, DELAYLINE3> &del_2_r,
-	daisysp::DelayLine<float, DELAYLINE4> &del_3_r,
-	AllpassFilter<4500U> (&series_l)[4],
-	AllpassFilter<4500U> (&series_r)[4]
+	daisysp::DelayLine<float, DELAYLINE4> &del_3_r
 ) :
+	series_apf_l_(series_l),
+	series_apf_r_(series_r),
 	del_0_l_(del_0_l),
 	del_1_l_(del_1_l),
 	del_2_l_(del_2_l),
@@ -23,9 +25,7 @@ VersioReverb::VersioReverb(
 	del_0_r_(del_0_r),
 	del_1_r_(del_1_r),
 	del_2_r_(del_2_r),
-	del_3_r_(del_3_r),
-	series_apf_l_(series_l),
-	series_apf_r_(series_r)
+	del_3_r_(del_3_r)
 {
 }
 
