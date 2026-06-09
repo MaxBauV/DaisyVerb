@@ -121,14 +121,18 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	float del_0_r_val = del_0_r_.Read();
 	float del_2_r_val = del_2_r_.Read();
 
+	/** Calculate the curve (S-type) */
+	float x = currParams_.blend;
+	float wet_gain = (3.0f * x * x) - (2.0f * x * x * x);
+
 	/** Series Allpass Filters */
-	float x_l = in_l * currParams_.blend; 
+	float x_l = in_l * wet_gain; 
 	float series_apf_y_l = x_l;
 	for(int i = 0; i < 4; i++) {
 		series_apf_y_l = series_apf_l_[i].Process(series_apf_y_l);
 	}
 
-	float x_r = in_r * currParams_.blend; 
+	float x_r = in_r * wet_gain; 
 	float series_apf_y_r = x_r;
 	for(int i = 0; i < 4; i++) {
 		series_apf_y_r = series_apf_r_[i].Process(series_apf_y_r);
@@ -237,15 +241,17 @@ void VersioReverb::Process(float in_l, float in_r, float &out_wet_l, float &out_
 	}
 
 	/** Low Pass filter on wet signal */
-	currParams_.lpf = daisysp::fmap(currParams_.lpf, 20, 20000, daisysp::Mapping::LINEAR);
-	lpf_l_.SetFreq(currParams_.lpf);
-	lpf_r_.SetFreq(currParams_.lpf);
+	float lpf_freq = daisysp::fmap(currParams_.lpf, 20.0f, 20000.0f, daisysp::Mapping::LINEAR);
+	lpf_l_.SetFreq(lpf_freq);
+	lpf_r_.SetFreq(lpf_freq);
 	lpf_l_.Process(out_wet_l);
 	lpf_r_.Process(out_wet_r);
 	out_wet_l = lpf_l_.Low();
 	out_wet_r = lpf_r_.Low();
 
-	/** Blend mixing */
-	out_wet_l = out_wet_l + ((1.0 - currParams_.blend) * in_l);
-	out_wet_r = out_wet_r + ((1.0 - currParams_.blend) * in_r);
+	/** Blend Mixing */
+	float dry_gain = 1.0f - (x * x * x);
+
+	out_wet_l = out_wet_l + (in_l * dry_gain);
+	out_wet_r = out_wet_r + (in_r * dry_gain);
 }
