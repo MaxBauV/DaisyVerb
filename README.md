@@ -1,4 +1,10 @@
-# Adapted "dattorroW Reverb - sounds fucking awesome
+# Dattorro Verb
+
+based on https://github.com/adion12/DaisyVerb (https://www.youtube.com/watch?v=PNHGs7RQc_o), 
+which implements ***a plate reverberator “in the style of Griesinger” as proposed by Jon Dattorro.***
+***Very close to the plate algorithms found on the original Lexicon 224.*** - https://kaseypocius.github.io/MUMT618-DREV/about.html.
+
+<img src="docs/img/DRev-SignalPath.png" alt="Alt text" width="600">
 
 ## Getting the source
 
@@ -10,24 +16,3 @@ or
 git clone 
 git submodule update --init
 ```
-
-## TODO:
-- Blend Poti:
-    - erste hälte: input volume bleibt gleich laut, nur reverb wird lauter (letzteres: so wie jetzt)
-    - zweite hälte: input volume nimmat ab, reverb bleibt
-- Toni:
-    - Click wenn unter 0.48 oder über 0.52
-- Code aufräumen:
-    - leserlicher machen, in Klassen aufteilen
-
-
-# Stereo FDN Verb for Daisy Patch.init()
-
-forked from https://github.com/adion12/DaisyVerb
-
-## TODOs
-[ ] Convert to true stereo
-
-[ ] Fix Pots
-
-[ ] Mutexes for global variables (where needed)
